@@ -1,0 +1,119 @@
+FROM buildpack-deps:jessie-curl
+
+MAINTAINER Alexey Zhokhov <alexey@zhokhov.com>
+
+# Default to UTF-8 file.encoding
+ENV LANG C.UTF-8
+
+# Set the env variable DEBIAN_FRONTEND to noninteractive
+ENV DEBIAN_FRONTEND noninteractive
+
+ENV NGINX_VERSION 1.8.0
+ENV PAGESPEED_VERSION 1.9.32.10
+ENV NGX_PAGESPEED_VERSION 1.9.32.10-beta
+ENV NGX_DEVEL_KIT_VERSION 0.2.19
+ENV NGX_LUA_VERSION 0.9.20
+
+ENV PKG_NAME nginx-on-steroids
+ENV PKG_VERSION $NGINX_VERSION
+ENV PKG_RELEASE 1
+
+ENV NGINX_URL http://nginx.org/download/nginx-$NGINX_VERSION.tar.gz
+ENV PAGESPEED_URL https://dl.google.com/dl/page-speed/psol/$PAGESPEED_VERSION.tar.gz
+ENV NGX_PAGESPEED_URL https://github.com/pagespeed/ngx_pagespeed/archive/v$NGX_PAGESPEED_VERSION.tar.gz
+ENV NGX_DEVEL_KIT_URL https://github.com/simpl/ngx_devel_kit/archive/v$NGX_DEVEL_KIT_VERSION.tar.gz
+ENV NGX_LUA_URL https://github.com/openresty/lua-nginx-module/archive/v$NGX_LUA_VERSION.tar.gz
+
+RUN apt-get update \
+    && apt-get -y upgrade \
+    && apt-get -y install \
+       luajit \
+       libluajit-5.1 \
+       libluajit-5.1-dev \
+       build-essential \
+       libpcre3-dev \
+       libpcre++-dev \
+       libssl-dev \
+       libssl-dev \
+       zlib1g-dev \
+       checkinstall \
+    && apt-get -y clean
+
+RUN mkdir -p /root/build
+
+WORKDIR /root/build
+
+RUN curl -fSL "$NGINX_URL" -o nginx.tar.gz
+RUN curl -fSL "$NGX_PAGESPEED_URL" -o ngx_pagespeed.tar.gz
+RUN curl -fSL "$NGX_DEVEL_KIT_URL" -o ngx_devel_kit.tar.gz
+RUN curl -fSL "$NGX_LUA_URL" -o ngx_lua.tar.gz
+
+RUN tar --no-same-owner -xzvf nginx.tar.gz
+RUN tar --no-same-owner -xzvf ngx_pagespeed.tar.gz
+RUN tar --no-same-owner -xzvf ngx_devel_kit.tar.gz
+RUN tar --no-same-owner -xzvf ngx_lua.tar.gz
+
+WORKDIR /root/build/ngx_pagespeed-$NGX_PAGESPEED_VERSION
+
+RUN curl -fSL "$PAGESPEED_URL" -o pagespeed.tar.gz
+RUN tar --no-same-owner -xzvf pagespeed.tar.gz
+
+WORKDIR /root/build/nginx-$NGINX_VERSION
+
+RUN ./configure \
+        --prefix=/etc/nginx \
+        --sbin-path=/usr/sbin/nginx \
+        --conf-path=/etc/nginx/nginx.conf \
+        --error-log-path=/var/log/nginx/error.log \
+        --http-log-path=/var/log/nginx/access.log \
+        --pid-path=/var/run/nginx.pid \
+        --lock-path=/var/run/nginx.lock \
+        --http-client-body-temp-path=/var/cache/nginx/client_temp \
+        --http-proxy-temp-path=/var/cache/nginx/proxy_temp \
+        --http-fastcgi-temp-path=/var/cache/nginx/fastcgi_temp \
+        --http-uwsgi-temp-path=/var/cache/nginx/uwsgi_temp \
+        --http-scgi-temp-path=/var/cache/nginx/scgi_temp \
+        --user=nginx \
+        --group=nginx \
+        --with-http_ssl_module \
+        --with-http_realip_module \
+        --with-http_addition_module \
+        --with-http_sub_module \
+        --with-http_dav_module \
+        --with-http_flv_module \
+        --with-http_mp4_module \
+        --with-http_gunzip_module \
+        --with-http_gzip_static_module \
+        --with-http_random_index_module \
+        --with-http_secure_link_module \
+        --with-http_stub_status_module \
+        --with-http_auth_request_module \
+        --with-mail \
+        --with-mail_ssl_module \
+        --with-file-aio \
+        --with-http_spdy_module \
+        --with-ipv6 \
+        --with-ld-opt="-Wl,-rpath,/usr/lib" \
+        --add-module=../ngx_pagespeed-$NGX_PAGESPEED_VERSION \
+        --add-module=../ngx_devel_kit-$NGX_DEVEL_KIT_VERSION \
+        --add-module=../lua-nginx-module-$NGX_LUA_VERSION \
+        --with-cc-opt="$(pcre-config --cflags)"
+
+RUN make -j2
+
+ADD src/nginx.conf /root/build/nginx-$NGINX_VERSION/conf/nginx.conf
+ADD src/postinstall-pak /root/build/nginx-$NGINX_VERSION/postinstall-pak
+
+RUN echo "donbeave: NGINX $NGINX_VERSION with pagespeed $NGX_PAGESPEED_VERSION module" > description-pak && \
+	checkinstall --pkgname=$PKG_NAME --pkgversion=$PKG_VERSION --pkgrelease=$PKG_RELEASE \
+        --conflicts=nginx --replaces=nginx --provides="nginx" \
+        --requires="libpcre3,adduser" --strip=yes --stripso=yes -Dy --install=no --nodoc make -i install
+
+ADD src/bintray_upload.sh /bintray_upload.sh
+
+RUN chmod a+x /bintray_upload.sh
+
+CMD ["/bintray_upload.sh"]
+
+# If you're reading this and have any feedback on how this image could be
+#   improved, please open an issue or a pull request so we can discuss it!
