@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Step 1 : Uploading to bintray"
-curl -X PUT -H "X-Bintray-Debian-Distribution: wheezy" \
+curl -X PUT -H "X-Bintray-Debian-Distribution: jessie" \
             -H "X-Bintray-Debian-Component: main" \
             -H "X-Bintray-Debian-Architecture: amd64" \
      -T ${PKG_NAME}_${PKG_VERSION}-${PKG_RELEASE}_amd64.deb \

@@ -1,4 +1,4 @@
-FROM buildpack-deps:wheezy-curl
+FROM buildpack-deps:jessie-curl
 
 MAINTAINER Alexey Zhokhov <alexey@zhokhov.com>
 
@@ -10,8 +10,8 @@ ENV DEBIAN_FRONTEND noninteractive
 
 ENV NGINX_VERSION 1.8.0-1
 
-RUN curl 'https://bintray.com/user/downloadSubjectPublicKey?username=bintray' | apt-key add - 
-RUN echo "deb http://dl.bintray.com/donbeave/deb wheezy main" >> /etc/apt/sources.list
+RUN curl 'https://bintray.com/user/downloadSubjectPublicKey?username=bintray' | apt-key add -
+RUN echo "deb http://dl.bintray.com/donbeave/deb jessie main" >> /etc/apt/sources.list
 
 RUN apt-get update && \
     apt-get install -y ca-certificates nginx-on-steroids=${NGINX_VERSION} && \
