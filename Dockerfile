@@ -14,7 +14,7 @@ RUN curl 'https://bintray.com/user/downloadSubjectPublicKey?username=bintray' | 
 RUN echo "deb http://dl.bintray.com/donbeave/deb wheezy main" >> /etc/apt/sources.list
 
 RUN apt-get update && \
-    apt-get install -y ca-certificates nginx-pagespeed=${NGINX_VERSION} && \
+    apt-get install -y ca-certificates nginx-on-steroids=${NGINX_VERSION} && \
     rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /var/log/nginx
