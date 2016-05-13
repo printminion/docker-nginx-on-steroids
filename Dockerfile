@@ -8,7 +8,7 @@ ENV LANG C.UTF-8
 # Set the env variable DEBIAN_FRONTEND to noninteractive
 ENV DEBIAN_FRONTEND noninteractive
 
-ENV NGINX_VERSION 1.8.0-1
+ENV NGINX_VERSION 1.10.0-1
 
 RUN curl 'https://bintray.com/user/downloadSubjectPublicKey?username=bintray' | apt-key add -
 RUN echo "deb http://dl.bintray.com/donbeave/deb jessie main" >> /etc/apt/sources.list
