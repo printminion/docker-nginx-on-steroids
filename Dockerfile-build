@@ -107,7 +107,7 @@ ADD src/postinstall-pak /root/build/nginx-$NGINX_VERSION/postinstall-pak
 RUN echo "donbeave: NGINX $NGINX_VERSION with pagespeed $NGX_PAGESPEED_VERSION module" > description-pak && \
 	checkinstall --pkgname=$PKG_NAME --pkgversion=$PKG_VERSION --pkgrelease=$PKG_RELEASE \
         --conflicts=nginx --replaces=nginx --provides="nginx" \
-        --requires="libpcre3,adduser" --strip=yes --stripso=yes -Dy --install=no --nodoc make -i install
+        --requires="libpcre3,adduser,luajit,libluajit-5.1" --strip=yes --stripso=yes -Dy --install=no --nodoc make -i install
 
 ADD src/bintray_upload.sh /bintray_upload.sh
 
