@@ -13,11 +13,8 @@ ENV NGINX_VERSION 1.10.0-1
 RUN curl 'https://bintray.com/user/downloadSubjectPublicKey?username=bintray' | apt-key add -
 RUN echo "deb http://dl.bintray.com/donbeave/deb jessie main" >> /etc/apt/sources.list
 
-RUN apt-get update \
-    && apt-get -y upgrade \
-    && apt-get -y install \
+RUN apt-get -y install \
        luajit \
-       libluajit-5.1 \
        ca-certificates \
        nginx-on-steroids=${NGINX_VERSION} \
     && apt-get -y clean \
