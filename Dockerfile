@@ -17,6 +17,7 @@ RUN apt-get update \
     && apt-get -y upgrade \
     && apt-get -y install \
        luajit \
+       libluajit-5.1-2 \
        ca-certificates \
        nginx-on-steroids=${NGINX_VERSION} \
     && apt-get -y clean \
